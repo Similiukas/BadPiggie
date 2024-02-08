@@ -1,0 +1,49 @@
+{
+    "root": true,
+    "env": {
+        "browser": true,
+        "es2021": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "standard"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module"
+    },
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "rules": {
+        // Bug for no-unused-vars on enum https://github.com/typescript-eslint/typescript-eslint/issues/2621
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": "error",
+        // Gets angry about overwolf namespace
+        "no-undef": "off", // https://github.com/typescript-eslint/typescript-eslint/issues/342
+        // Using semicolons: https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/semi.md
+        "semi": "off",
+        "@typescript-eslint/semi": "error",
+        // For type definitions in classes (class A; private static _instance: A)
+        "no-use-before-define": "off",
+        "@typescript-eslint/no-use-before-define": "error",
+        // If I'm using any, then there's a reason
+        "@typescript-eslint/no-explicit-any": "off",
+        // And if I'm using a ts-ignore, then there's definitely a reason
+        "@typescript-eslint/ban-ts-comment": "off",
+        "indent": [
+            "error",
+            4,
+            {
+                "MemberExpression": "off",
+                "SwitchCase": 1
+            }
+        ],
+        "max-len": [
+            "warn",
+            180
+        ]
+    }
+}

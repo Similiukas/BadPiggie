@@ -1,0 +1,27 @@
+{
+  "name": "skinbot",
+  "author": "Similiukas",
+  "type": "module",
+  "scripts": {
+    "compile": "tsc && npm run copy",
+    "clean": "rimraf dist/",
+    "copy": "npx copyfiles .env dist/ && npx copyfiles -u 1 src/**/*.json dist/",
+    "build": "npm run lint && npm run prettier && npm run clean && npm run compile",
+    "start": "npm run copy && cd dist && node . && cd ..",
+    "dev": "npm run clean && tsc-watch --onSuccess \"npm run start\"",
+    "prod": "npm run build && npm run start"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "dotenv": "^16.4.1",
+    "eslint": "^8.56.0",
+    "eslint-config-standard": "^17.1.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3",
+    "tsc-watch": "^6.0.4"
+  }
+}

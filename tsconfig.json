@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+      "target": "esnext",
+      "module": "ESNext",
+      "sourceMap": true,
+      "outDir": "./dist",
+      "moduleResolution": "node",
+      "removeComments": true,
+      "strict": true,
+      "resolveJsonModule": true,
+      "typeRoots": ["./node_modules/@types"],
+      "rootDirs": [
+        "./src"
+      ],
+    },
+    "exclude": [
+      "node_modules"
+    ]
+  }
+  
