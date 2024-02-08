@@ -7,8 +7,9 @@
       "moduleResolution": "node",
       "removeComments": true,
       "strict": true,
+      "strictNullChecks": false,
       "resolveJsonModule": true,
-      "typeRoots": ["./node_modules/@types"],
+      "typeRoots": ["./node_modules/@types", "./types"],
       "rootDirs": [
         "./src"
       ],

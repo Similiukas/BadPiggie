@@ -17,6 +17,9 @@
     "plugins": [
         "@typescript-eslint"
     ],
+    "ignorePatterns": [
+        "deploy-commands.cjs"
+    ],
     "rules": {
         // Bug for no-unused-vars on enum https://github.com/typescript-eslint/typescript-eslint/issues/2621
         "no-unused-vars": "off",
@@ -33,6 +36,7 @@
         "@typescript-eslint/no-explicit-any": "off",
         // And if I'm using a ts-ignore, then there's definitely a reason
         "@typescript-eslint/ban-ts-comment": "off",
+        "space-before-function-paren": "off",
         "indent": [
             "error",
             4,
