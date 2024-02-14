@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
       "target": "esnext",
-      "module": "ESNext",
+      "module": "CommonJS",
       "sourceMap": true,
       "outDir": "./dist",
       "moduleResolution": "node",
@@ -9,6 +9,7 @@
       "strict": true,
       "strictNullChecks": false,
       "resolveJsonModule": true,
+      "allowSyntheticDefaultImports": true,
       "typeRoots": ["./node_modules/@types", "./types"],
       "rootDirs": [
         "./src"

@@ -18,7 +18,7 @@
         "@typescript-eslint"
     ],
     "ignorePatterns": [
-        "deploy-commands.cjs"
+        "deploy-commands.js"
     ],
     "rules": {
         // Bug for no-unused-vars on enum https://github.com/typescript-eslint/typescript-eslint/issues/2621

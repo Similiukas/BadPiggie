@@ -1,40 +1,33 @@
-// Require the necessary discord.js classes
-import { Client, Collection, Events, GatewayIntentBits } from 'discord.js';
+import { generateDependencyReport, getVoiceConnection } from '@discordjs/voice';
+import { Client, Events, GatewayIntentBits } from 'discord.js';
 import { config } from 'dotenv';
-import TestCommand from './commands/test.js';
-import { CustomClient } from './types/customTypes';
+import { commandHandler } from './commands.js';
+import { deploy } from './deploy.js';
+// import { CustomClient } from './types/types.js';
 
 config();
 
 const TOKEN = process.env.TOKEN;
 
-// console.log(TOKEN);
-// console.log('dar kazkas pala pal');
+console.log(generateDependencyReport());
 
-// Create a new client instance
-const client: CustomClient = new Client({ intents: [GatewayIntentBits.Guilds] });
-client.commands = new Collection();
-client.commands.set(TestCommand.data.name, TestCommand);
+const client = new Client({ intents: [GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.Guilds] });
 
-// When the client is ready, run this code (only once).
-// The distinction between `client: Client<boolean>` and `readyClient: Client<true>` is important for TypeScript developers.
-// It makes some properties non-nullable.
 client.once(Events.ClientReady, readyClient => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
 
 client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isChatInputCommand()) return;
-    const _client = interaction.client as CustomClient;
-    const command = _client.commands.get(interaction.commandName);
 
-    if (!command) {
-        console.error(`No command matching ${interaction.commandName} was found.`);
-        return;
-    }
+    const handler = commandHandler.get(interaction.commandName);
 
     try {
-        await command.execute(interaction);
+        if (handler) {
+            await handler(interaction, getVoiceConnection(interaction.guildId));
+        } else {
+            await interaction.reply('Unknown command');
+        }
     } catch (error) {
         console.error(error);
         if (interaction.replied || interaction.deferred) {
@@ -45,5 +38,24 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 });
 
-// Log in to Discord with your client's token
+client.on(Events.MessageCreate, async (message) => {
+    console.log('message [', message.content, ']');
+    if (!message.guild) { console.log('1'); return; }
+    if (!client.application?.owner) await client.application?.fetch();
+    console.log('2');
+    if (message.content.toLowerCase() === '!deploy' && message.author.id === client.application?.owner?.id) {
+        console.log('deploying');
+        await deploy(message.guild);
+        await message.reply('Deployed!');
+    }
+});
+
+// client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
+//     console.log('voice state update', oldState, newState);
+// });
+
+// client.on(Events.VoiceServerUpdate, async (oldState, newState) => {
+//     console.log('voice server update', oldState, newState);
+// });
+
 client.login(TOKEN);

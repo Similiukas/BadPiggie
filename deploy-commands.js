@@ -10,8 +10,10 @@ DEV_SERVER_ID = process.env.DEV_SERVER_ID;
 const commands = [];
 
 async function importCommands() {
-    const TestCommand = await import('./dist/commands/check.js');
+    const TestCommand = await import('./dist/commands/test.js');
+    const JoinCommand = await import('./dist/commands/voice.js');
     commands.push(TestCommand.default.data.toJSON());
+    commands.push(JoinCommand.default.data.toJSON());
 }
 
 // Construct and prepare an instance of the REST module
