@@ -1,5 +1,6 @@
-import { VoiceConnection, joinVoiceChannel } from '@discordjs/voice';
+import { VoiceConnection, VoiceConnectionStatus, entersState, joinVoiceChannel } from '@discordjs/voice';
 import { CommandInteraction, GuildMember } from 'discord.js';
+import { playAudio, subscribePlayer } from './play';
 import { record } from './record';
 
 async function join(interaction: CommandInteraction, connection?: VoiceConnection) {
@@ -11,7 +12,7 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
                 channelId: channel.id,
                 guildId: channel.guild.id,
                 selfDeaf: false,
-                selfMute: true,
+                selfMute: false,
                 // Currently voice is built in mind with API v10 whereas discord.js v13 uses API v9.
                 adapterCreator: channel.guild.voiceAdapterCreator
             });
@@ -21,11 +22,18 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
         }
     }
 
-    console.log('joined voice channel', connection);
+    console.log('joined voice channel');
 
     try {
+        await entersState(connection, VoiceConnectionStatus.Ready, 20e3);
+
+        subscribePlayer(connection);
+
         const receiver = connection.receiver;
         receiver.speaking.on('start', userId => {
+            // So if person stops speaking for a split second and resumes, this will hit again and start recording another file, while the first one is still recording
+            // Zodziu, sunkiausia ir idomiausia dalis, tai kad jeigu jau irasomas, tai nereiktu dar karta irasineti man rodos
+            // Tuo paciu, jeigu labai trumpas, tai irgi nereikia irasineti, bet cia va iskyla problema, nes neaisku ar trumpas bus ar ne, todel bus daug garbage, kuriuose reikes atrinkti. Pradedi rasyt, labai trumpas, tai net nesaugai
             record(connection, userId);
         });
     } catch (error) {
@@ -48,4 +56,13 @@ async function leave(interaction: CommandInteraction, connection?: VoiceConnecti
     }
 }
 
-export const commandHandler = new Map([['join', join], ['leave', leave]]);
+async function play(interaction: CommandInteraction) {
+    try {
+        playAudio();
+        interaction.reply('Playing audio');
+    } catch (error) {
+        interaction.reply('Failed to play audio');
+    }
+}
+
+export const commandHandler = new Map([['join', join], ['leave', leave], ['play', play]]);

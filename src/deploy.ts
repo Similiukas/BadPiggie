@@ -22,6 +22,10 @@ export const deploy = async (guild: Guild) => {
         {
             name: 'leave',
             description: 'Leave the voice channel'
+        },
+        {
+            name: 'play',
+            description: 'Plays an audio file'
         }
     ]);
 };

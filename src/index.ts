@@ -3,7 +3,6 @@ import { Client, Events, GatewayIntentBits } from 'discord.js';
 import { config } from 'dotenv';
 import { commandHandler } from './commands.js';
 import { deploy } from './deploy.js';
-// import { CustomClient } from './types/types.js';
 
 config();
 
@@ -11,7 +10,7 @@ const TOKEN = process.env.TOKEN;
 
 console.log(generateDependencyReport());
 
-const client = new Client({ intents: [GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.Guilds] });
+const client = new Client({ intents: [GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent] });
 
 client.once(Events.ClientReady, readyClient => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
@@ -57,5 +56,7 @@ client.on(Events.MessageCreate, async (message) => {
 // client.on(Events.VoiceServerUpdate, async (oldState, newState) => {
 //     console.log('voice server update', oldState, newState);
 // });
+
+client.on(Events.Error, console.warn);
 
 client.login(TOKEN);

@@ -8,7 +8,7 @@ export async function record(connection: VoiceConnection, userId: string) {
     const subscription = receiver.subscribe(userId, {
         end: {
             behavior: EndBehaviorType.AfterSilence,
-            duration: 1000
+            duration: 2000
         }
     });
 
@@ -22,9 +22,13 @@ export async function record(connection: VoiceConnection, userId: string) {
         }
     });
 
-    const out = createWriteStream('output.ogg');
+    const out = createWriteStream(`recordings/v1/${Math.round(Math.random() * 10)}.ogg`);
 
-    pipeline(subscription, oggStream, out).catch(console.error).finally(() => {
-        console.log('done');
+    console.log('started recording');
+
+    pipeline(subscription, oggStream, out).then(() => {
+        console.log('done writing file');
+    }).catch((error) => {
+        console.log('error writing file', error);
     });
 }

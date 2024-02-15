@@ -2,3 +2,6 @@ node_modules/
 .env
 .vscode
 dist/
+recordings/
+*.ogg
+*.mp3
