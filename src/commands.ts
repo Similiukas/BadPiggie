@@ -36,6 +36,9 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
             // Tuo paciu, jeigu labai trumpas, tai irgi nereikia irasineti, bet cia va iskyla problema, nes neaisku ar trumpas bus ar ne, todel bus daug garbage, kuriuose reikes atrinkti. Pradedi rasyt, labai trumpas, tai net nesaugai
             record(connection, userId);
         });
+        receiver.speaking.on('end', userId => {
+            console.log('[parent] ended speaking', userId);
+        });
     } catch (error) {
         console.warn('Error occurred while joining voice channel:', error);
         await interaction.followUp('Failed to join voice channel within 20 seconds, please try again later!');

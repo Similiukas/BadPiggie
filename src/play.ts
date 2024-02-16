@@ -11,7 +11,7 @@ export async function playAudio() {
     //     inputType: StreamType.Arbitrary
     // });
 
-    const name = `recordings/v1/${Math.round(Math.random() * 10)}.ogg`;
+    const name = `recordings/v2/${Math.round(Math.random() * 10)}.ogg`;
     console.log('gonna try to play audio', name);
 
     // const source = createReadStream('src/output-501799902846648321-1708034303710.ogg');
