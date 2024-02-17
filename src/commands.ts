@@ -3,6 +3,12 @@ import { CommandInteraction, GuildMember } from 'discord.js';
 import { playAudio, subscribePlayer } from './play';
 import { record } from './record';
 
+const SPEAK_INTERVAL = 1000;
+
+let interval: NodeJS.Timeout;
+
+// TODO: randomly joins vc, says something, leaves
+
 async function join(interaction: CommandInteraction, connection?: VoiceConnection) {
     await interaction.deferReply();
     if (!connection) {
@@ -22,8 +28,6 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
         }
     }
 
-    console.log('joined voice channel');
-
     try {
         await entersState(connection, VoiceConnectionStatus.Ready, 20e3);
 
@@ -36,9 +40,9 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
             // Tuo paciu, jeigu labai trumpas, tai irgi nereikia irasineti, bet cia va iskyla problema, nes neaisku ar trumpas bus ar ne, todel bus daug garbage, kuriuose reikes atrinkti. Pradedi rasyt, labai trumpas, tai net nesaugai
             record(connection, userId);
         });
-        receiver.speaking.on('end', userId => {
-            console.log('[parent] ended speaking', userId);
-        });
+        // receiver.speaking.on('end', userId => {
+        //     console.log('[parent] ended speaking', userId);
+        // });
     } catch (error) {
         console.warn('Error occurred while joining voice channel:', error);
         await interaction.followUp('Failed to join voice channel within 20 seconds, please try again later!');
@@ -46,25 +50,30 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
         return;
     }
 
-    // @ts-ignore
-    await interaction.followUp(`This command was run by ${interaction.user.username}, who joined on ${interaction.member.joinedAt}.`);
+    await interaction.followUp(`Joined voice channel ${connection.joinConfig.group}!`);
 }
 
 async function leave(interaction: CommandInteraction, connection?: VoiceConnection) {
     if (connection) {
         connection.destroy();
+        clearInterval(interval);
         await interaction.reply('Left the voice channel!');
     } else {
         await interaction.reply('I am not in a voice channel!');
     }
 }
 
-async function play(interaction: CommandInteraction) {
+async function play(interaction: CommandInteraction, connection?: VoiceConnection) {
+    if (!connection) {
+        await interaction.reply('I am not in a voice channel!');
+        return;
+    }
+
     try {
-        playAudio();
-        interaction.reply('Playing audio');
+        interval = setInterval(playAudio, SPEAK_INTERVAL);
+        interaction.reply('Speaking begins');
     } catch (error) {
-        interaction.reply('Failed to play audio');
+        interaction.reply('Failed to speak');
     }
 }
 

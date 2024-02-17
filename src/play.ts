@@ -1,5 +1,7 @@
-import { AudioPlayerStatus, VoiceConnection, createAudioPlayer, createAudioResource, entersState } from '@discordjs/voice';
+import { AudioPlayerStatus, StreamType, VoiceConnection, createAudioPlayer, createAudioResource, entersState } from '@discordjs/voice';
+import { stat } from 'node:fs/promises';
 
+// TODO: man rodos vienas player per guild turetu but?
 const player = createAudioPlayer();
 
 export function subscribePlayer(connection: VoiceConnection) {
@@ -7,23 +9,21 @@ export function subscribePlayer(connection: VoiceConnection) {
 }
 
 export async function playAudio() {
-    // const resource = createAudioResource('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', {
-    //     inputType: StreamType.Arbitrary
-    // });
-
-    const name = `recordings/v2/${Math.round(Math.random() * 10)}.ogg`;
+    const name = `recordings/v4/${Math.round(Math.random() * 100)}.ogg`;
     console.log('gonna try to play audio', name);
 
-    // const source = createReadStream('src/output-501799902846648321-1708034303710.ogg');
+    stat(name).then(() => {
+        const resource = createAudioResource(name, {
+            inputType: StreamType.OggOpus
+        });
 
-    // const resource = createAudioResource('src/ba.mp3');
-    const resource = createAudioResource(name);
+        console.log('created audio resource');
 
-    console.log('created audio resource');
+        player.play(resource);
 
-    player.play(resource);
-
-    console.log('will start to audio resource');
-
-    return entersState(player, AudioPlayerStatus.Playing, 5e3);
+        console.log('will start to audio resource');
+        return entersState(player, AudioPlayerStatus.Playing, 5e3);
+    }).catch(() => {
+        console.log('file not found');
+    });
 }

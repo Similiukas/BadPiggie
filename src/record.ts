@@ -1,15 +1,23 @@
 import { EndBehaviorType, VoiceConnection } from '@discordjs/voice';
-import { createWriteStream } from 'node:fs';
+import { createWriteStream, unlink } from 'node:fs';
 import { pipeline } from 'node:stream/promises';
 import * as prism from 'prism-media';
 
 const MAX_SILENCE = 2000;
-const MAX_LENGTH = 5000;
+const MAX_LENGTH = 7000;
+
+function deleteFile(file: string) {
+    unlink(file, (err) => {
+        if (err) {
+            console.error('Error deleting file', file, err);
+        }
+    });
+}
 
 export function record(connection: VoiceConnection, userId: string) {
     // TODO:
     // [X] - Abandon recording if it's too long (kinda the problem is that we abort but then it you stop for a split second and keep on yapping, it will record a new one. But maybe that's fine)
-    // [ ] - Do not save recording if it's too short
+    // [X] - Do not save recording if it's too short
     // [X] - Do not record if already recording
     // [ ] - Look at optimizations
     // Could also do this with a Map and then this would return a Promise, on which you reset that it stopped recording for user
@@ -28,12 +36,12 @@ export function record(connection: VoiceConnection, userId: string) {
         }
     });
 
-    subscription.on('end', () => {
-        console.log('S1 END', userId);
-    });
-    subscription.on('close', () => {
-        console.log('S1 CLOSE', userId);
-    });
+    // subscription.on('end', () => {
+    //     console.log('S1 END', userId);
+    // });
+    // subscription.on('close', () => {
+    //     console.log('S1 CLOSE', userId);
+    // });
 
     const oggStream = new prism.opus.OggLogicalBitstream({
         opusHead: new prism.opus.OpusHead({
@@ -45,23 +53,23 @@ export function record(connection: VoiceConnection, userId: string) {
         }
     });
 
-    oggStream.on('end', () => {
-        console.log('S2 END', userId);
-    });
-    oggStream.on('close', () => {
-        console.log('S2 CLOSE', userId);
-    });
+    // oggStream.on('end', () => {
+    //     console.log('S2 END', userId);
+    // });
+    // oggStream.on('close', () => {
+    //     console.log('S2 CLOSE', userId);
+    // });
 
-    const fileName = `recordings/v2/${Math.round(Math.random() * 1000)}.ogg`;
+    const fileName = `recordings/v4/${Math.round(Math.random() * 100)}.ogg`;
     console.log('recording to', fileName);
     const out = createWriteStream(fileName);
 
-    out.on('end', () => {
-        console.log('S3 END', userId);
-    });
-    out.on('close', () => {
-        console.log('S3 CLOSE', userId);
-    });
+    // out.on('end', () => {
+    //     console.log('S3 END', userId);
+    // });
+    // out.on('close', () => {
+    //     console.log('S3 CLOSE', userId);
+    // });
 
     const timeout = setTimeout(() => {
         console.log('FORCING stopped recording');
@@ -75,9 +83,14 @@ export function record(connection: VoiceConnection, userId: string) {
 
     pipeline(subscription, oggStream, out, { signal }).then(() => {
         console.log('done writing file');
+        console.log('res', out.bytesWritten);
+        if (out.bytesWritten < 8000) {
+            console.log('file too short, deleting');
+            deleteFile(fileName);
+        }
     }).catch((error) => {
         console.log('error writing file', error);
-        // Need to delete file probably
+        deleteFile(fileName);
     }).finally(() => {
         clearTimeout(timeout);
     });

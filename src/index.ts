@@ -38,24 +38,15 @@ client.on(Events.InteractionCreate, async interaction => {
 });
 
 client.on(Events.MessageCreate, async (message) => {
-    console.log('message [', message.content, ']');
-    if (!message.guild) { console.log('1'); return; }
+    if (!message.guild) return;
     if (!client.application?.owner) await client.application?.fetch();
-    console.log('2');
+
     if (message.content.toLowerCase() === '!deploy' && message.author.id === client.application?.owner?.id) {
         console.log('deploying');
         await deploy(message.guild);
         await message.reply('Deployed!');
     }
 });
-
-// client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
-//     console.log('voice state update', oldState, newState);
-// });
-
-// client.on(Events.VoiceServerUpdate, async (oldState, newState) => {
-//     console.log('voice server update', oldState, newState);
-// });
 
 client.on(Events.Error, console.warn);
 
