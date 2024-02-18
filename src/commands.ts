@@ -1,13 +1,11 @@
 import { VoiceConnection, VoiceConnectionStatus, entersState, joinVoiceChannel } from '@discordjs/voice';
 import { CommandInteraction, GuildMember } from 'discord.js';
-import { playAudio, subscribePlayer } from './play';
+import { maybePlayAudio, subscribePlayer, unsubscribePlayer } from './play';
 import { record } from './record';
 
 const SPEAK_INTERVAL = 1000;
 
 let interval: NodeJS.Timeout;
-
-// TODO: randomly joins vc, says something, leaves
 
 async function join(interaction: CommandInteraction, connection?: VoiceConnection) {
     await interaction.deferReply();
@@ -40,9 +38,6 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
             // Tuo paciu, jeigu labai trumpas, tai irgi nereikia irasineti, bet cia va iskyla problema, nes neaisku ar trumpas bus ar ne, todel bus daug garbage, kuriuose reikes atrinkti. Pradedi rasyt, labai trumpas, tai net nesaugai
             record(connection, userId);
         });
-        // receiver.speaking.on('end', userId => {
-        //     console.log('[parent] ended speaking', userId);
-        // });
     } catch (error) {
         console.warn('Error occurred while joining voice channel:', error);
         await interaction.followUp('Failed to join voice channel within 20 seconds, please try again later!');
@@ -56,6 +51,7 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
 async function leave(interaction: CommandInteraction, connection?: VoiceConnection) {
     if (connection) {
         connection.destroy();
+        unsubscribePlayer(connection.joinConfig.guildId);
         clearInterval(interval);
         await interaction.reply('Left the voice channel!');
     } else {
@@ -70,7 +66,7 @@ async function play(interaction: CommandInteraction, connection?: VoiceConnectio
     }
 
     try {
-        interval = setInterval(playAudio, SPEAK_INTERVAL);
+        interval = setInterval(maybePlayAudio, SPEAK_INTERVAL, connection.joinConfig.guildId);
         interaction.reply('Speaking begins');
     } catch (error) {
         interaction.reply('Failed to speak');

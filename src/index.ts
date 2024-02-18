@@ -2,6 +2,7 @@ import { generateDependencyReport, getVoiceConnection } from '@discordjs/voice';
 import { Client, Events, GatewayIntentBits } from 'discord.js';
 import { config } from 'dotenv';
 import { commandHandler } from './commands.js';
+import { setupCron } from './cron.js';
 import { deploy } from './deploy.js';
 
 config();
@@ -14,6 +15,7 @@ const client = new Client({ intents: [GatewayIntentBits.GuildVoiceStates, Gatewa
 
 client.once(Events.ClientReady, readyClient => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+    setupCron(client, readyClient.user.id);
 });
 
 client.on(Events.InteractionCreate, async interaction => {
