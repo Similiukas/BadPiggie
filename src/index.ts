@@ -1,4 +1,4 @@
-import { generateDependencyReport, getVoiceConnection } from '@discordjs/voice';
+import { getVoiceConnection } from '@discordjs/voice';
 import { Client, Events, GatewayIntentBits } from 'discord.js';
 import { config } from 'dotenv';
 import { mkdir, stat } from 'node:fs/promises';
@@ -10,9 +10,7 @@ config();
 
 const TOKEN = process.env.TOKEN;
 
-console.log(generateDependencyReport());
-
-const client = new Client({ intents: [GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent] });
+const client = new Client({ intents: [GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.Guilds] });
 
 client.once(Events.ClientReady, readyClient => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
@@ -51,7 +49,7 @@ client.on(Events.MessageCreate, async (message) => {
     if (!client.application?.owner) await client.application?.fetch();
 
     if (message.content.toLowerCase() === '!deploy' && message.author.id === client.application?.owner?.id) {
-        console.log('deploying');
+        console.log('deploying guild commands');
         await deploy(message.guild);
         await message.reply('Deployed!');
     }

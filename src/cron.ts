@@ -1,18 +1,16 @@
 import { VoiceConnectionStatus, entersState, joinVoiceChannel } from '@discordjs/voice';
-import { ChannelType, Client, Collection, VoiceChannel } from 'discord.js';
+import { ChannelType, Client, VoiceChannel } from 'discord.js';
 import cron from 'node-cron';
 import { readdir } from 'node:fs/promises';
 import { playAudio, subscribePlayer, unsubscribePlayer } from './play';
 
 export function setupCron(client: Client<boolean>, botId: string) {
-    cron.schedule('*/1 * * * *', async () => {
+    cron.schedule('*/34 * * * *', async () => {
         for (const guild of client.guilds.cache.values()) {
-            // @ts-ignore
-            const activeVoiceChannels: Collection<string, VoiceChannel> = guild.channels.cache.filter(channel =>
+            const activeVoiceChannels = guild.channels.cache.filter((channel): channel is VoiceChannel =>
                 channel.type === ChannelType.GuildVoice &&
                 channel.members.size > 0 &&
                 channel.members.every(member => member.user.id !== botId));
-            console.log('active voice channels we are not in', activeVoiceChannels);
 
             if (activeVoiceChannels.size === 0) continue;
 
