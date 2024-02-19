@@ -1,6 +1,7 @@
 import { generateDependencyReport, getVoiceConnection } from '@discordjs/voice';
 import { Client, Events, GatewayIntentBits } from 'discord.js';
 import { config } from 'dotenv';
+import { mkdir, stat } from 'node:fs/promises';
 import { commandHandler } from './commands.js';
 import { setupCron } from './cron.js';
 import { deploy } from './deploy.js';
@@ -16,6 +17,12 @@ const client = new Client({ intents: [GatewayIntentBits.GuildVoiceStates, Gatewa
 client.once(Events.ClientReady, readyClient => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
     setupCron(client, readyClient.user.id);
+    // Ensure that the recordings directory exists for every guild because maybe bot was added while it was offline
+    client.guilds.cache.forEach(guild => {
+        stat(`recordings/${guild.id}`).catch(() => {
+            mkdir(`recordings/${guild.id}`);
+        });
+    });
 });
 
 client.on(Events.InteractionCreate, async interaction => {
@@ -48,6 +55,13 @@ client.on(Events.MessageCreate, async (message) => {
         await deploy(message.guild);
         await message.reply('Deployed!');
     }
+});
+
+client.on(Events.GuildCreate, async guild => {
+    console.log('Joined guild', guild.name);
+    stat(`recordings/${guild.id}`).catch(() => {
+        mkdir(`recordings/${guild.id}`);
+    });
 });
 
 client.on(Events.Error, console.warn);

@@ -1,9 +1,8 @@
 import { VoiceConnection, VoiceConnectionStatus, entersState, joinVoiceChannel } from '@discordjs/voice';
 import { CommandInteraction, GuildMember } from 'discord.js';
+import { SPEAK_INTERVAL } from './config.json';
 import { maybePlayAudio, subscribePlayer, unsubscribePlayer } from './play';
 import { record } from './record';
-
-const SPEAK_INTERVAL = 1000;
 
 let interval: NodeJS.Timeout;
 
@@ -38,10 +37,13 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
             // Tuo paciu, jeigu labai trumpas, tai irgi nereikia irasineti, bet cia va iskyla problema, nes neaisku ar trumpas bus ar ne, todel bus daug garbage, kuriuose reikes atrinkti. Pradedi rasyt, labai trumpas, tai net nesaugai
             record(connection, userId);
         });
+
+        interval = setInterval(maybePlayAudio, SPEAK_INTERVAL, connection.joinConfig.guildId);
     } catch (error) {
         console.warn('Error occurred while joining voice channel:', error);
         await interaction.followUp('Failed to join voice channel within 20 seconds, please try again later!');
         connection.destroy();
+        unsubscribePlayer(connection.joinConfig.guildId);
         return;
     }
 
@@ -59,18 +61,4 @@ async function leave(interaction: CommandInteraction, connection?: VoiceConnecti
     }
 }
 
-async function play(interaction: CommandInteraction, connection?: VoiceConnection) {
-    if (!connection) {
-        await interaction.reply('I am not in a voice channel!');
-        return;
-    }
-
-    try {
-        interval = setInterval(maybePlayAudio, SPEAK_INTERVAL, connection.joinConfig.guildId);
-        interaction.reply('Speaking begins');
-    } catch (error) {
-        interaction.reply('Failed to speak');
-    }
-}
-
-export const commandHandler = new Map([['join', join], ['leave', leave], ['play', play]]);
+export const commandHandler = new Map([['join', join], ['leave', leave]]);

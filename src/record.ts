@@ -2,9 +2,7 @@ import { EndBehaviorType, VoiceConnection } from '@discordjs/voice';
 import { createWriteStream, unlink } from 'node:fs';
 import { pipeline } from 'node:stream/promises';
 import * as prism from 'prism-media';
-
-const MAX_SILENCE = 2000;
-const MAX_LENGTH = 7000;
+import { MAX_RECORDING_LENGTH, MAX_RECORDING_SILENCE } from './config.json';
 
 function deleteFile(file: string) {
     unlink(file, (err) => {
@@ -13,6 +11,19 @@ function deleteFile(file: string) {
         }
     });
 }
+
+// TODO: should save files to their guild directories. Every guild should have its own directory
+// Then should play only sounds from that guild
+// Also, random sounds from that guild also
+
+// TODO:
+// [ ] cleanup
+// [ ] patestuoti su keliais guild
+// Reiketu padaryti cron, kad galetu isjungti in guild
+// ir pakeisti cron job intervala, bet cia va jau sudetinga
+// Reikia patikrinti, ar kol sukasi sitas cron ir botas prisijungia prie naujo guild, tai ar atsinaujina guilds cache
+// [ ] probability of playing a sound
+// [ ] error handling
 
 export function record(connection: VoiceConnection, userId: string) {
     // TODO:
@@ -32,7 +43,7 @@ export function record(connection: VoiceConnection, userId: string) {
     const subscription = connection.receiver.subscribe(userId, {
         end: {
             behavior: EndBehaviorType.AfterSilence,
-            duration: MAX_SILENCE
+            duration: MAX_RECORDING_SILENCE
         }
     });
 
@@ -60,7 +71,7 @@ export function record(connection: VoiceConnection, userId: string) {
     //     console.log('S2 CLOSE', userId);
     // });
 
-    const fileName = `recordings/v4/${Math.round(Math.random() * 100)}.ogg`;
+    const fileName = `recordings/${connection.joinConfig.guildId}/${Math.round(Math.random() * 100)}.ogg`;
     console.log('recording to', fileName);
     const out = createWriteStream(fileName);
 
@@ -77,7 +88,7 @@ export function record(connection: VoiceConnection, userId: string) {
         subscription.unpipe(oggStream);
         oggStream.end();
         controller.abort();
-    }, MAX_LENGTH);
+    }, MAX_RECORDING_LENGTH);
 
     console.log('started recording');
 

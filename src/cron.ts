@@ -1,11 +1,9 @@
 import { VoiceConnectionStatus, entersState, joinVoiceChannel } from '@discordjs/voice';
 import { ChannelType, Client, Collection, VoiceChannel } from 'discord.js';
 import cron from 'node-cron';
+import { readdir } from 'node:fs/promises';
 import { playAudio, subscribePlayer, unsubscribePlayer } from './play';
 
-// TODO: patestuoti su keliais guilds
-// Reiketu padaryti sita, kad galetu isjungti in guild
-// ir pakeisti cron job intervala, bet cia va jau sudetinga
 export function setupCron(client: Client<boolean>, botId: string) {
     cron.schedule('*/1 * * * *', async () => {
         for (const guild of client.guilds.cache.values()) {
@@ -18,29 +16,33 @@ export function setupCron(client: Client<boolean>, botId: string) {
 
             if (activeVoiceChannels.size === 0) continue;
 
+            // Channel not joinable
             const channel = activeVoiceChannels.random();
-            console.log('joining channel', channel);
-
             if (!channel.joinable) continue;
+            // No audio clips to play
+            const files = await readdir(`recordings/${guild.id}`);
+            if (files.length === 0) continue;
+
+            const connection = joinVoiceChannel({
+                channelId: channel.id,
+                guildId: channel.guild.id,
+                selfMute: false,
+                selfDeaf: true,
+                adapterCreator: channel.guild.voiceAdapterCreator
+            });
 
             try {
-                const connection = joinVoiceChannel({
-                    channelId: channel.id,
-                    guildId: channel.guild.id,
-                    selfMute: false,
-                    selfDeaf: true,
-                    adapterCreator: channel.guild.voiceAdapterCreator
-                });
-
                 await entersState(connection, VoiceConnectionStatus.Ready, 20e3);
                 subscribePlayer(connection);
-                playAudio(guild.id);
+                playAudio(guild.id, `recordings/${guild.id}/${files[Math.floor(Math.random() * files.length)]}`);
                 setTimeout(() => {
                     connection.destroy();
                     unsubscribePlayer(guild.id);
                 }, 7000);
             } catch (error) {
                 console.error('Failed to randomly play something:', error);
+                connection.destroy();
+                unsubscribePlayer(guild.id);
             }
         }
     });
