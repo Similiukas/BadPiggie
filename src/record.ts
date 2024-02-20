@@ -17,6 +17,7 @@ function deleteFile(file: string) {
 // ir pakeisti cron job intervala, bet cia va jau sudetinga
 // Reikia patikrinti, ar kol sukasi sitas cron ir botas prisijungia prie naujo guild, tai ar atsinaujina guilds cache
 // [ ] error handling
+// [ ] kai lieka vienas in vc, should leave it
 
 export function record(connection: VoiceConnection, userId: string) {
     // Could also do this with a Map and then this would return a Promise, on which you reset that it stopped recording for user

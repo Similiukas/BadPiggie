@@ -1,6 +1,6 @@
 import { VoiceConnection, VoiceConnectionStatus, entersState, joinVoiceChannel } from '@discordjs/voice';
 import { CommandInteraction, GuildMember } from 'discord.js';
-import { SPEAK_INTERVAL } from './config.json';
+import { PROBABILITY_TO_RECORD, SPEAK_INTERVAL } from './config.json';
 import { maybePlayAudio, subscribePlayer, unsubscribePlayer } from './play';
 import { record } from './record';
 
@@ -31,7 +31,9 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
 
         const receiver = connection.receiver;
         receiver.speaking.on('start', userId => {
-            record(connection, userId);
+            if (Math.random() < PROBABILITY_TO_RECORD) {
+                record(connection, userId);
+            }
         });
 
         interval = setInterval(maybePlayAudio, SPEAK_INTERVAL, connection.joinConfig.guildId);

@@ -5,7 +5,7 @@ import { readdir } from 'node:fs/promises';
 import { playAudio, subscribePlayer, unsubscribePlayer } from './play';
 
 export function setupCron(client: Client<boolean>, botId: string) {
-    cron.schedule('*/34 * * * *', async () => {
+    cron.schedule('32 * * * *', async () => {
         for (const guild of client.guilds.cache.values()) {
             const activeVoiceChannels = guild.channels.cache.filter((channel): channel is VoiceChannel =>
                 channel.type === ChannelType.GuildVoice &&

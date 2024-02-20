@@ -1,6 +1,6 @@
 import { AudioPlayer, AudioPlayerStatus, StreamType, VoiceConnection, createAudioPlayer, createAudioResource, entersState } from '@discordjs/voice';
 import { stat } from 'node:fs/promises';
-import { MAX_FILES_PER_GUILD, PROBABILITY_TO_SPEAK } from './config.json';
+import { MAX_FILES_PER_GUILD, PROBABILITY_TO_PLAY_SPECIAL, PROBABILITY_TO_SPEAK } from './config.json';
 
 const players = new Map<string, AudioPlayer>();
 
@@ -19,10 +19,14 @@ export function unsubscribePlayer(guildId: string) {
 }
 
 export function playAudio(guildId: string, name: string) {
+    if (Math.random() < PROBABILITY_TO_PLAY_SPECIAL) {
+        name = `recordings/special/${Math.round(Math.random() * 4)}.ogg`;
+    }
+
     const resource = createAudioResource(name, {
         inputType: StreamType.OggOpus
     });
-    console.log('playing audio', name);
+    console.log(`[${new Date().toLocaleTimeString()}] playing audio ${name}`);
 
     const player = players.get(guildId);
     if (!player) return;
@@ -36,5 +40,5 @@ export async function maybePlayAudio(guildId: string) {
 
     stat(name).then(() => {
         playAudio(guildId, name);
-    }).catch(() => { });
+    }).catch(() => { console.log(`[${new Date().toLocaleTimeString()}], didn't hit ${name}`); });
 }

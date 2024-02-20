@@ -17,6 +17,7 @@ client.once(Events.ClientReady, readyClient => {
     setupCron(client, readyClient.user.id);
     // Ensure that the recordings directory exists for every guild because maybe bot was added while it was offline
     client.guilds.cache.forEach(guild => {
+        console.log(`Guild [${guild.name}] has id ${guild.id}`);
         stat(`recordings/${guild.id}`).catch(() => {
             mkdir(`recordings/${guild.id}`);
         });
@@ -60,6 +61,10 @@ client.on(Events.GuildCreate, async guild => {
     stat(`recordings/${guild.id}`).catch(() => {
         mkdir(`recordings/${guild.id}`);
     });
+});
+
+client.on(Events.GuildDelete, async guild => {
+    console.log('Left guild', guild.name);
 });
 
 client.on(Events.Error, console.warn);
