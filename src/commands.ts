@@ -1,16 +1,30 @@
 import { VoiceConnection, VoiceConnectionStatus, entersState, joinVoiceChannel } from '@discordjs/voice';
-import { CommandInteraction, GuildMember } from 'discord.js';
+import { CommandInteraction, GuildMember, VoiceBasedChannel } from 'discord.js';
 import { PROBABILITY_TO_RECORD, SPEAK_INTERVAL } from './config.json';
 import { maybePlayAudio, subscribePlayer, unsubscribePlayer } from './play';
 import { record } from './record';
 
 let interval: NodeJS.Timeout;
 
+function leaveVoiceChannel(connection: VoiceConnection, guildId: string) {
+    connection.destroy();
+    unsubscribePlayer(guildId);
+    clearInterval(interval);
+}
+
+function mainLoop(channel: VoiceBasedChannel, connection: VoiceConnection, guildId: string) {
+    maybePlayAudio(guildId);
+    if (channel.members.size === 1) {
+        leaveVoiceChannel(connection, guildId);
+    }
+}
+
 async function join(interaction: CommandInteraction, connection?: VoiceConnection) {
     await interaction.deferReply();
+    let channel: VoiceBasedChannel;
     if (!connection) {
         if (interaction.member instanceof GuildMember && interaction.member.voice.channel) {
-            const channel = interaction.member.voice.channel;
+            channel = interaction.member.voice.channel;
             connection = joinVoiceChannel({
                 channelId: channel.id,
                 guildId: channel.guild.id,
@@ -36,12 +50,11 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
             }
         });
 
-        interval = setInterval(maybePlayAudio, SPEAK_INTERVAL, connection.joinConfig.guildId);
+        interval = setInterval(mainLoop, SPEAK_INTERVAL, channel, connection, connection.joinConfig.guildId);
     } catch (error) {
         console.warn('Error occurred while joining voice channel:', error);
         await interaction.followUp('Failed to join voice channel within 20 seconds, please try again later!');
-        connection.destroy();
-        unsubscribePlayer(connection.joinConfig.guildId);
+        leaveVoiceChannel(connection, connection.joinConfig.guildId);
         return;
     }
 
@@ -50,9 +63,7 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
 
 async function leave(interaction: CommandInteraction, connection?: VoiceConnection) {
     if (connection) {
-        connection.destroy();
-        unsubscribePlayer(connection.joinConfig.guildId);
-        clearInterval(interval);
+        leaveVoiceChannel(connection, connection.joinConfig.guildId);
         await interaction.reply('Left the voice channel!');
     } else {
         await interaction.reply('I am not in a voice channel!');
