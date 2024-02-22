@@ -4,4 +4,4 @@ node_modules/
 dist/
 recordings/
 *.ogg
-*.mp3
+configs/

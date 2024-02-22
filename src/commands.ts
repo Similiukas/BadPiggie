@@ -1,6 +1,7 @@
 import { VoiceConnection, VoiceConnectionStatus, entersState, joinVoiceChannel } from '@discordjs/voice';
 import { CommandInteraction, GuildMember, VoiceBasedChannel } from 'discord.js';
-import { PROBABILITY_TO_RECORD, SPEAK_INTERVAL } from './config.json';
+import { PROBABILITY_TO_RECORD } from './config.json';
+import { editConfig, getConfig } from './configHandler';
 import { maybePlayAudio, subscribePlayer, unsubscribePlayer } from './play';
 import { record } from './record';
 
@@ -50,6 +51,8 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
             }
         });
 
+        const { SPEAK_INTERVAL } = getConfig(connection.joinConfig.guildId);
+
         interval = setInterval(mainLoop, SPEAK_INTERVAL, channel, connection, connection.joinConfig.guildId);
     } catch (error) {
         console.warn('Error occurred while joining voice channel:', error);
@@ -70,4 +73,18 @@ async function leave(interaction: CommandInteraction, connection?: VoiceConnecti
     }
 }
 
-export const commandHandler = new Map([['join', join], ['leave', leave]]);
+async function editConfigCommand(interaction: CommandInteraction) {
+    await interaction.deferReply();
+    try {
+        editConfig(interaction.guildId, {
+            'speak-probability': interaction.options.get('speak-probability').value as number,
+            'speak-interval': interaction.options.get('speak-interval').value as number,
+            'random-join': interaction.options.get('random-join').value as boolean
+        });
+        await interaction.followUp('Edited config successfully!');
+    } catch (error) {
+        await interaction.followUp('Failed to edit config');
+    }
+}
+
+export const commandHandler = new Map([['join', join], ['leave', leave], ['edit', editConfigCommand]]);

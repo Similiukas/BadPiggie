@@ -1,6 +1,7 @@
 import { AudioPlayer, AudioPlayerStatus, StreamType, VoiceConnection, createAudioPlayer, createAudioResource, entersState } from '@discordjs/voice';
 import { readdir } from 'node:fs/promises';
-import { PROBABILITY_TO_PLAY_SPECIAL, PROBABILITY_TO_SPEAK } from './config.json';
+import { PROBABILITY_TO_PLAY_SPECIAL } from './config.json';
+import { getConfig } from './configHandler';
 
 const players = new Map<string, AudioPlayer>();
 
@@ -38,8 +39,9 @@ export function playAudio(guildId: string, name: string) {
 export async function maybePlayAudio(guildId: string) {
     const files = await readdir(`recordings/${guildId}`);
 
-    const name = `recordings/${guildId}/${files[Math.floor(Math.random() * files.length)]}.ogg`;
+    const name = `recordings/${guildId}/${files[Math.floor(Math.random() * files.length)]}`;
 
+    const { PROBABILITY_TO_SPEAK } = getConfig(guildId);
     if (Math.random() > PROBABILITY_TO_SPEAK) {
         console.log(`[${new Date().toLocaleTimeString()}] didn't hit`);
     }

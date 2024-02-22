@@ -3,6 +3,7 @@ import { Client, Events, GatewayIntentBits } from 'discord.js';
 import { config } from 'dotenv';
 import { mkdir, stat } from 'node:fs/promises';
 import { commandHandler } from './commands.js';
+import { createConfig } from './configHandler.js';
 import { setupCron } from './cron.js';
 import { deploy } from './deploy.js';
 
@@ -21,6 +22,7 @@ client.once(Events.ClientReady, readyClient => {
         stat(`recordings/${guild.id}`).catch(() => {
             mkdir(`recordings/${guild.id}`);
         });
+        createConfig(guild.id);
     });
 });
 
@@ -61,6 +63,7 @@ client.on(Events.GuildCreate, async guild => {
     stat(`recordings/${guild.id}`).catch(() => {
         mkdir(`recordings/${guild.id}`);
     });
+    createConfig(guild.id);
 });
 
 client.on(Events.GuildDelete, async guild => {

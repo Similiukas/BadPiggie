@@ -2,11 +2,15 @@ import { VoiceConnectionStatus, entersState, joinVoiceChannel } from '@discordjs
 import { ChannelType, Client, VoiceChannel } from 'discord.js';
 import cron from 'node-cron';
 import { readdir } from 'node:fs/promises';
+import { getConfig } from './configHandler';
 import { playAudio, subscribePlayer, unsubscribePlayer } from './play';
 
 export function setupCron(client: Client<boolean>, botId: string) {
-    cron.schedule('32 * * * *', async () => {
+    cron.schedule('*/27 * * * *', async () => {
         for (const guild of client.guilds.cache.values()) {
+            const { ALLOW_RANDOM_JOIN } = getConfig(guild.id);
+            if (!ALLOW_RANDOM_JOIN) continue;
+
             const activeVoiceChannels = guild.channels.cache.filter((channel): channel is VoiceChannel =>
                 channel.type === ChannelType.GuildVoice &&
                 channel.members.size > 0 &&
