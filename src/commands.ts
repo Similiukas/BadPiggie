@@ -74,17 +74,31 @@ async function leave(interaction: CommandInteraction, connection?: VoiceConnecti
 }
 
 async function editConfigCommand(interaction: CommandInteraction) {
-    await interaction.deferReply();
+    await interaction.deferReply({ ephemeral: true });
     try {
         editConfig(interaction.guildId, {
             'speak-probability': interaction.options.get('speak-probability').value as number,
             'speak-interval': interaction.options.get('speak-interval').value as number,
             'random-join': interaction.options.get('random-join').value as boolean
         });
-        await interaction.followUp('Edited config successfully!');
+        await interaction.followUp({ content: 'Edited config successfully!', ephemeral: true });
     } catch (error) {
-        await interaction.followUp('Failed to edit config');
+        await interaction.followUp({ content: 'Failed to edit config', ephemeral: true });
     }
 }
 
-export const commandHandler = new Map([['join', join], ['leave', leave], ['edit', editConfigCommand]]);
+async function showConfig(interaction: CommandInteraction) {
+    await interaction.deferReply({ ephemeral: true });
+    const config = getConfig(interaction.guildId);
+    await interaction.followUp({
+        content: `Current configuration:
+
+Interval at which bot speaks: **${(config.SPEAK_INTERVAL / 60 / 1000).toFixed(2)}** minutes
+Probability for bot to speak: **${config.PROBABILITY_TO_SPEAK}**
+Can bot randomly join active voice channel: **${config.ALLOW_RANDOM_JOIN}**
+    `,
+        ephemeral: true
+    });
+}
+
+export const commandHandler = new Map([['join', join], ['leave', leave], ['edit', editConfigCommand], ['config', showConfig]]);

@@ -11,6 +11,10 @@ export const deploy = async (guild: Guild) => {
             description: 'Leave the voice channels'
         },
         {
+            name: 'config',
+            description: 'Displays the current configuration for the bot'
+        },
+        {
             name: 'edit',
             description: 'Edits the configuration file for the bot',
             default_member_permissions: '8',
@@ -31,7 +35,7 @@ export const deploy = async (guild: Guild) => {
                 },
                 {
                     name: 'speak-interval',
-                    type: ApplicationCommandOptionType.Number,
+                    type: ApplicationCommandOptionType.Integer,
                     description: 'The interval at which the bot will speak in seconds',
                     required: true,
                     min_value: 60,
