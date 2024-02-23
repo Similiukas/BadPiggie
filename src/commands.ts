@@ -43,15 +43,14 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
         await entersState(connection, VoiceConnectionStatus.Ready, 20e3);
 
         subscribePlayer(connection);
+        const { SPEAK_INTERVAL, RECORDABLE_ROLE } = await getConfig(connection.joinConfig.guildId);
 
-        const receiver = connection.receiver;
-        receiver.speaking.on('start', userId => {
-            if (Math.random() < PROBABILITY_TO_RECORD) {
+        connection.receiver.speaking.on('start', userId => {
+            if (Math.random() < PROBABILITY_TO_RECORD &&
+                (RECORDABLE_ROLE === '' || channel.members.get(userId).roles.cache.some(role => role.id === RECORDABLE_ROLE))) {
                 record(connection, userId);
             }
         });
-
-        const { SPEAK_INTERVAL } = getConfig(connection.joinConfig.guildId);
 
         interval = setInterval(mainLoop, SPEAK_INTERVAL, channel, connection, connection.joinConfig.guildId);
     } catch (error) {
@@ -76,10 +75,11 @@ async function leave(interaction: CommandInteraction, connection?: VoiceConnecti
 async function editConfigCommand(interaction: CommandInteraction) {
     await interaction.deferReply({ ephemeral: true });
     try {
-        editConfig(interaction.guildId, {
+        await editConfig(interaction.guildId, {
             'speak-probability': interaction.options.get('speak-probability').value as number,
             'speak-interval': interaction.options.get('speak-interval').value as number,
-            'random-join': interaction.options.get('random-join').value as boolean
+            'random-join': interaction.options.get('random-join').value as boolean,
+            'recordable-role': interaction.options.get('recordable-role')?.value as string ?? ''
         });
         await interaction.followUp({ content: 'Edited config successfully!', ephemeral: true });
     } catch (error) {
@@ -89,15 +89,16 @@ async function editConfigCommand(interaction: CommandInteraction) {
 
 async function showConfig(interaction: CommandInteraction) {
     await interaction.deferReply({ ephemeral: true });
-    const config = getConfig(interaction.guildId);
+    const config = await getConfig(interaction.guildId);
     await interaction.followUp({
+        ephemeral: true,
         content: `Current configuration:
 
-Interval at which bot speaks: **${(config.SPEAK_INTERVAL / 60 / 1000).toFixed(2)}** minutes
+Interval at which bot speaks: **${(config.SPEAK_INTERVAL / (60 * 1000)).toFixed(2)}** minutes
 Probability for bot to speak: **${config.PROBABILITY_TO_SPEAK}**
 Can bot randomly join active voice channel: **${config.ALLOW_RANDOM_JOIN}**
-    `,
-        ephemeral: true
+Role that the bot can record: **${config.RECORDABLE_ROLE === '' ? 'Everyone' : interaction.guild.roles.cache.get(config.RECORDABLE_ROLE).name}**
+    `
     });
 }
 

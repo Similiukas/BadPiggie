@@ -8,7 +8,7 @@ export const deploy = async (guild: Guild) => {
         },
         {
             name: 'leave',
-            description: 'Leave the voice channels'
+            description: 'Leave the voice channel'
         },
         {
             name: 'config',
@@ -40,6 +40,12 @@ export const deploy = async (guild: Guild) => {
                     required: true,
                     min_value: 60,
                     max_value: 3600
+                },
+                {
+                    name: 'recordable-role',
+                    type: ApplicationCommandOptionType.Role,
+                    description: 'User role which bot can record. If not provided, bot will record all users.',
+                    required: false
                 }
             ]
         }

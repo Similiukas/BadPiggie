@@ -21,7 +21,7 @@ export function unsubscribePlayer(guildId: string) {
 
 export function playAudio(guildId: string, name: string) {
     if (Math.random() < PROBABILITY_TO_PLAY_SPECIAL) {
-        name = `recordings/special/${Math.round(Math.random() * 5)}.ogg`;
+        name = `recordings/special/${Math.round(Math.random() * 4)}.ogg`;
     }
 
     const resource = createAudioResource(name, {
@@ -41,9 +41,10 @@ export async function maybePlayAudio(guildId: string) {
 
     const name = `recordings/${guildId}/${files[Math.floor(Math.random() * files.length)]}`;
 
-    const { PROBABILITY_TO_SPEAK } = getConfig(guildId);
+    const { PROBABILITY_TO_SPEAK } = await getConfig(guildId);
     if (Math.random() > PROBABILITY_TO_SPEAK) {
         console.log(`[${new Date().toLocaleTimeString()}] didn't hit`);
+        return;
     }
 
     playAudio(guildId, name);

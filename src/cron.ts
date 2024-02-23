@@ -8,7 +8,7 @@ import { playAudio, subscribePlayer, unsubscribePlayer } from './play';
 export function setupCron(client: Client<boolean>, botId: string) {
     cron.schedule('*/27 * * * *', async () => {
         for (const guild of client.guilds.cache.values()) {
-            const { ALLOW_RANDOM_JOIN } = getConfig(guild.id);
+            const { ALLOW_RANDOM_JOIN } = await getConfig(guild.id);
             if (!ALLOW_RANDOM_JOIN) continue;
 
             const activeVoiceChannels = guild.channels.cache.filter((channel): channel is VoiceChannel =>

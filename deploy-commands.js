@@ -54,6 +54,12 @@ const rest = new REST().setToken(TOKEN);
                             required: true,
                             min_value: 60,
                             max_value: 3600
+                        },
+                        {
+                            name: 'recordable-role',
+                            type: 8,
+                            description: 'User role which bot can record. If not provided, bot will record all users.',
+                            required: false
                         }
                     ]
                 }
