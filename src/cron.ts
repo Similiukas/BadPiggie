@@ -15,10 +15,8 @@ export function setupCron(client: Client<boolean>, botId: string) {
                 channel.type === ChannelType.GuildVoice &&
                 channel.members.size > 0 &&
                 channel.members.every(member => member.user.id !== botId));
-
             if (activeVoiceChannels.size === 0) continue;
 
-            // Channel not joinable
             const channel = activeVoiceChannels.random();
             if (!channel.joinable) continue;
             // No audio clips to play
@@ -35,12 +33,14 @@ export function setupCron(client: Client<boolean>, botId: string) {
 
             try {
                 await entersState(connection, VoiceConnectionStatus.Ready, 20e3);
+
                 subscribePlayer(connection);
                 playAudio(guild.id, `recordings/${guild.id}/${files[Math.floor(Math.random() * files.length)]}`);
+
                 setTimeout(() => {
                     connection.destroy();
                     unsubscribePlayer(guild.id);
-                }, 7000);
+                }, 9000);
             } catch (error) {
                 console.error('Failed to randomly play something:', error);
                 connection.destroy();

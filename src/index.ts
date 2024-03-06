@@ -5,7 +5,6 @@ import { mkdir, stat } from 'node:fs/promises';
 import { commandHandler } from './commands.js';
 import { createConfig } from './configHandler.js';
 import { setupCron } from './cron.js';
-import { deploy } from './deploy.js';
 
 config();
 
@@ -18,7 +17,7 @@ client.once(Events.ClientReady, readyClient => {
     setupCron(client, readyClient.user.id);
     // Ensure that the recordings directory exists for every guild because maybe bot was added while it was offline
     client.guilds.cache.forEach(guild => {
-        console.log(`Guild [${guild.name}] has id ${guild.id}`);
+        console.log(`Guild [${guild.name}] with id ${guild.id}`);
         stat(`recordings/${guild.id}`).catch(() => {
             mkdir(`recordings/${guild.id}`);
         });
@@ -47,16 +46,16 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 });
 
-client.on(Events.MessageCreate, async (message) => {
-    if (!message.guild) return;
-    if (!client.application?.owner) await client.application?.fetch();
+// client.on(Events.MessageCreate, async (message) => {
+//     if (!message.guild) return;
+//     if (!client.application?.owner) await client.application?.fetch();
 
-    if (message.content.toLowerCase() === '!deploy' && message.author.id === client.application?.owner?.id) {
-        console.log('deploying guild commands');
-        await deploy(message.guild);
-        await message.reply('Deployed!');
-    }
-});
+//     if (message.content.toLowerCase() === '!deploy' && message.author.id === client.application?.owner?.id) {
+//         console.log('deploying guild commands');
+//         await deploy(message.guild);
+//         await message.reply('Deployed!');
+//     }
+// });
 
 client.on(Events.GuildCreate, async guild => {
     console.log('Joined guild', guild.name);

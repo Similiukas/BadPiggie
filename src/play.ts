@@ -20,17 +20,15 @@ export function unsubscribePlayer(guildId: string) {
 }
 
 export function playAudio(guildId: string, name: string) {
-    if (Math.random() < PROBABILITY_TO_PLAY_SPECIAL) {
-        name = `recordings/special/${Math.round(Math.random() * 4)}.ogg`;
-    }
-
-    const resource = createAudioResource(name, {
-        inputType: StreamType.OggOpus
-    });
-    console.log(`[${new Date().toLocaleTimeString()}] playing audio ${name}`);
-
     const player = players.get(guildId);
     if (!player) return;
+
+    if (Math.random() < PROBABILITY_TO_PLAY_SPECIAL) {
+        name = `recordings/special/${Math.round(Math.random() * 5)}.ogg`;
+    }
+
+    const resource = createAudioResource(name, { inputType: StreamType.OggOpus });
+    console.log(`[${new Date().toLocaleTimeString()}] playing audio ${name}`);
 
     player.play(resource);
     return entersState(player, AudioPlayerStatus.Playing, 5e3);
@@ -38,7 +36,6 @@ export function playAudio(guildId: string, name: string) {
 
 export async function maybePlayAudio(guildId: string) {
     const files = await readdir(`recordings/${guildId}`);
-
     const name = `recordings/${guildId}/${files[Math.floor(Math.random() * files.length)]}`;
 
     const { PROBABILITY_TO_SPEAK } = await getConfig(guildId);

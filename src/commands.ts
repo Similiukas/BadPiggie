@@ -5,12 +5,12 @@ import { editConfig, getConfig } from './configHandler';
 import { maybePlayAudio, subscribePlayer, unsubscribePlayer } from './play';
 import { record } from './record';
 
-let interval: NodeJS.Timeout;
+const intervals = new Map<string, NodeJS.Timeout>();
 
 function leaveVoiceChannel(connection: VoiceConnection, guildId: string) {
     connection.destroy();
     unsubscribePlayer(guildId);
-    clearInterval(interval);
+    clearInterval(intervals.get(guildId));
 }
 
 function mainLoop(channel: VoiceBasedChannel, connection: VoiceConnection, guildId: string) {
@@ -52,7 +52,7 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
             }
         });
 
-        interval = setInterval(mainLoop, SPEAK_INTERVAL, channel, connection, connection.joinConfig.guildId);
+        intervals.set(connection.joinConfig.guildId, setInterval(mainLoop, SPEAK_INTERVAL, channel, connection, connection.joinConfig.guildId));
     } catch (error) {
         console.warn('Error occurred while joining voice channel:', error);
         await interaction.followUp('Failed to join voice channel within 20 seconds, please try again later!');

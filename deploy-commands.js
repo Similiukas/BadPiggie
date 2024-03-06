@@ -52,7 +52,7 @@ const rest = new REST().setToken(TOKEN);
                             type: 4,
                             description: 'The interval at which the bot will speak in seconds',
                             required: true,
-                            min_value: 60,
+                            min_value: 10,
                             max_value: 3600
                         },
                         {
