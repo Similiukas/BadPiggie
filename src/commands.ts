@@ -2,7 +2,7 @@ import { VoiceConnection, VoiceConnectionStatus, entersState, joinVoiceChannel }
 import { CommandInteraction, GuildMember, VoiceBasedChannel } from 'discord.js';
 import { PROBABILITY_TO_RECORD } from './config.json';
 import { editConfig, getConfig } from './configHandler';
-import { maybePlayAudio, subscribePlayer, unsubscribePlayer } from './play';
+import { playAudio, subscribePlayer, unsubscribePlayer } from './play';
 import { record } from './record';
 
 const intervals = new Map<string, NodeJS.Timeout>();
@@ -13,11 +13,12 @@ function leaveVoiceChannel(connection: VoiceConnection, guildId: string) {
     clearInterval(intervals.get(guildId));
 }
 
-function mainLoop(channel: VoiceBasedChannel, connection: VoiceConnection, guildId: string) {
-    maybePlayAudio(guildId);
+function mainLoop(channel: VoiceBasedChannel, connection: VoiceConnection, guildId: string, probability: number) {
     if (channel.members.size === 1) {
         leaveVoiceChannel(connection, guildId);
+        return;
     }
+    playAudio(guildId, probability);
 }
 
 async function join(interaction: CommandInteraction, connection?: VoiceConnection) {
@@ -43,7 +44,9 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
         await entersState(connection, VoiceConnectionStatus.Ready, 20e3);
 
         subscribePlayer(connection);
-        const { SPEAK_INTERVAL, RECORDABLE_ROLE } = await getConfig(connection.joinConfig.guildId);
+        // Play audio immediately when just joined
+        playAudio(connection.joinConfig.guildId, 0.95);
+        const { SPEAK_INTERVAL, RECORDABLE_ROLE, PROBABILITY_TO_SPEAK } = await getConfig(connection.joinConfig.guildId);
 
         connection.receiver.speaking.on('start', userId => {
             if (Math.random() < PROBABILITY_TO_RECORD &&
@@ -52,7 +55,7 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
             }
         });
 
-        intervals.set(connection.joinConfig.guildId, setInterval(mainLoop, SPEAK_INTERVAL, channel, connection, connection.joinConfig.guildId));
+        intervals.set(connection.joinConfig.guildId, setInterval(mainLoop, SPEAK_INTERVAL, channel, connection, connection.joinConfig.guildId, PROBABILITY_TO_SPEAK));
     } catch (error) {
         console.warn('Error occurred while joining voice channel:', error);
         await interaction.followUp('Failed to join voice channel within 20 seconds, please try again later!');
@@ -71,6 +74,8 @@ async function leave(interaction: CommandInteraction, connection?: VoiceConnecti
         await interaction.reply('I am not in a voice channel!');
     }
 }
+
+// TODO: random i chata imeta bad piggie gif
 
 async function editConfigCommand(interaction: CommandInteraction) {
     await interaction.deferReply({ ephemeral: true });

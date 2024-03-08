@@ -35,7 +35,7 @@ export function setupCron(client: Client<boolean>, botId: string) {
                 await entersState(connection, VoiceConnectionStatus.Ready, 20e3);
 
                 subscribePlayer(connection);
-                playAudio(guild.id, `recordings/${guild.id}/${files[Math.floor(Math.random() * files.length)]}`);
+                playAudio(guild.id, 0.95, `recordings/${guild.id}/${files[Math.floor(Math.random() * files.length)]}`);
 
                 setTimeout(() => {
                     connection.destroy();

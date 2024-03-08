@@ -1,7 +1,6 @@
 import { AudioPlayer, AudioPlayerStatus, StreamType, VoiceConnection, createAudioPlayer, createAudioResource, entersState } from '@discordjs/voice';
 import { readdir } from 'node:fs/promises';
 import { PROBABILITY_TO_PLAY_SPECIAL } from './config.json';
-import { getConfig } from './configHandler';
 
 const players = new Map<string, AudioPlayer>();
 
@@ -19,9 +18,19 @@ export function unsubscribePlayer(guildId: string) {
     }
 }
 
-export function playAudio(guildId: string, name: string) {
+export async function playAudio(guildId: string, probability: number, name?: string) {
+    if (Math.random() > probability) {
+        console.log(`[${new Date().toLocaleTimeString()}] didn't hit`);
+        return;
+    }
+
     const player = players.get(guildId);
     if (!player) return;
+
+    if (!name) {
+        const files = await readdir(`recordings/${guildId}`);
+        name = `recordings/${guildId}/${files[Math.floor(Math.random() * files.length)]}`;
+    }
 
     if (Math.random() < PROBABILITY_TO_PLAY_SPECIAL) {
         name = `recordings/special/${Math.round(Math.random() * 5)}.ogg`;
@@ -32,17 +41,4 @@ export function playAudio(guildId: string, name: string) {
 
     player.play(resource);
     return entersState(player, AudioPlayerStatus.Playing, 5e3);
-}
-
-export async function maybePlayAudio(guildId: string) {
-    const files = await readdir(`recordings/${guildId}`);
-    const name = `recordings/${guildId}/${files[Math.floor(Math.random() * files.length)]}`;
-
-    const { PROBABILITY_TO_SPEAK } = await getConfig(guildId);
-    if (Math.random() > PROBABILITY_TO_SPEAK) {
-        console.log(`[${new Date().toLocaleTimeString()}] didn't hit`);
-        return;
-    }
-
-    playAudio(guildId, name);
 }

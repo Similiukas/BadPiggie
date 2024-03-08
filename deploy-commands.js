@@ -26,7 +26,8 @@ const rest = new REST().setToken(TOKEN);
                 },
                 {
                     name: 'config',
-                    description: 'Displays the current configuration for the bot'
+                    description: 'Displays the current configuration for the bot',
+                    default_member_permissions: '8',
                 },
                 {
                     name: 'edit',
