@@ -2,6 +2,7 @@
   "name": "skinbot",
   "author": "Similiukas",
   "scripts": {
+    "build": "rimraf dist && tsc",
     "start": "node dist/index.js",
     "dev": "rimraf dist && tsc-watch --onSuccess \"node dist/index.js\""
   },

@@ -42,6 +42,7 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
 
     try {
         await entersState(connection, VoiceConnectionStatus.Ready, 20e3);
+        console.log(`[${new Date().toLocaleTimeString()}] Joined guild ${channel.guild.name}`)
 
         subscribePlayer(connection);
         // Play audio immediately when just joined

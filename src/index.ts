@@ -8,6 +8,8 @@ import { setupCron } from './cron.js';
 
 config();
 
+// console.log(generateDependencyReport());
+
 const TOKEN = process.env.TOKEN;
 
 const client = new Client({ intents: [GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.Guilds] });

@@ -9,7 +9,7 @@ export function setupCron(client: Client<boolean>, botId: string) {
     cron.schedule('*/27 * * * *', async () => {
         for (const guild of client.guilds.cache.values()) {
             const { ALLOW_RANDOM_JOIN } = await getConfig(guild.id);
-            if (!ALLOW_RANDOM_JOIN) continue;
+            if (!ALLOW_RANDOM_JOIN || Math.random() > 0.95) continue;
 
             const activeVoiceChannels = guild.channels.cache.filter((channel): channel is VoiceChannel =>
                 channel.type === ChannelType.GuildVoice &&
@@ -35,12 +35,12 @@ export function setupCron(client: Client<boolean>, botId: string) {
                 await entersState(connection, VoiceConnectionStatus.Ready, 20e3);
 
                 subscribePlayer(connection);
-                playAudio(guild.id, 0.95, `recordings/${guild.id}/${files[Math.floor(Math.random() * files.length)]}`);
+                playAudio(guild.id, 1, `recordings/${guild.id}/${files[Math.floor(Math.random() * files.length)]}`);
 
                 setTimeout(() => {
                     connection.destroy();
                     unsubscribePlayer(guild.id);
-                }, 9000);
+                }, 10000);
             } catch (error) {
                 console.error('Failed to randomly play something:', error);
                 connection.destroy();

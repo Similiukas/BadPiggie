@@ -29,6 +29,7 @@ export async function playAudio(guildId: string, probability: number, name?: str
 
     if (!name) {
         const files = await readdir(`recordings/${guildId}`);
+        if (files.length === 0) return;
         name = `recordings/${guildId}/${files[Math.floor(Math.random() * files.length)]}`;
     }
 
