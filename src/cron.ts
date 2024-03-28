@@ -9,7 +9,7 @@ export function setupCron(client: Client<boolean>, botId: string) {
     cron.schedule('*/27 * * * *', async () => {
         for (const guild of client.guilds.cache.values()) {
             const { ALLOW_RANDOM_JOIN } = await getConfig(guild.id);
-            if (!ALLOW_RANDOM_JOIN || Math.random() > 0.95) continue;
+            if (!ALLOW_RANDOM_JOIN || Math.random() > 0.90) continue;
 
             const activeVoiceChannels = guild.channels.cache.filter((channel): channel is VoiceChannel =>
                 channel.type === ChannelType.GuildVoice &&

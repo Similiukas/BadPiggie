@@ -1,19 +1,19 @@
 import { VoiceConnection, VoiceConnectionStatus, entersState, joinVoiceChannel } from '@discordjs/voice';
 import { CommandInteraction, GuildMember, VoiceBasedChannel } from 'discord.js';
-import { PROBABILITY_TO_RECORD } from './config.json';
 import { editConfig, getConfig } from './configHandler';
 import { playAudio, subscribePlayer, unsubscribePlayer } from './play';
-import { record } from './record';
+import { recordController, subscribeRecorder, unsubscribeRecorder } from './record';
 
 const intervals = new Map<string, NodeJS.Timeout>();
 
 function leaveVoiceChannel(connection: VoiceConnection, guildId: string) {
     connection.destroy();
     unsubscribePlayer(guildId);
+    unsubscribeRecorder(guildId);
     clearInterval(intervals.get(guildId));
 }
 
-function mainLoop(channel: VoiceBasedChannel, connection: VoiceConnection, guildId: string, probability: number) {
+function speakLoop(channel: VoiceBasedChannel, connection: VoiceConnection, guildId: string, probability: number) {
     if (channel.members.size === 1) {
         leaveVoiceChannel(connection, guildId);
         return;
@@ -42,21 +42,19 @@ async function join(interaction: CommandInteraction, connection?: VoiceConnectio
 
     try {
         await entersState(connection, VoiceConnectionStatus.Ready, 20e3);
-        console.log(`[${new Date().toLocaleTimeString()}] Joined guild ${channel.guild.name}`)
+        console.log(`[${new Date().toLocaleTimeString()}] Joined guild ${channel.guild.name}`);
 
         subscribePlayer(connection);
-        // Play audio immediately when just joined
+        subscribeRecorder(connection.joinConfig.guildId);
+        // Play audio immediately after joining
         playAudio(connection.joinConfig.guildId, 0.95);
         const { SPEAK_INTERVAL, RECORDABLE_ROLE, PROBABILITY_TO_SPEAK } = await getConfig(connection.joinConfig.guildId);
 
         connection.receiver.speaking.on('start', userId => {
-            if (Math.random() < PROBABILITY_TO_RECORD &&
-                (RECORDABLE_ROLE === '' || channel.members.get(userId).roles.cache.some(role => role.id === RECORDABLE_ROLE))) {
-                record(connection, userId);
-            }
+            recordController(connection, channel.members.get(userId), userId, RECORDABLE_ROLE);
         });
 
-        intervals.set(connection.joinConfig.guildId, setInterval(mainLoop, SPEAK_INTERVAL, channel, connection, connection.joinConfig.guildId, PROBABILITY_TO_SPEAK));
+        intervals.set(connection.joinConfig.guildId, setInterval(speakLoop, SPEAK_INTERVAL, channel, connection, connection.joinConfig.guildId, PROBABILITY_TO_SPEAK));
     } catch (error) {
         console.warn('Error occurred while joining voice channel:', error);
         await interaction.followUp('Failed to join voice channel within 20 seconds, please try again later!');
