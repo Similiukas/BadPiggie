@@ -3,9 +3,9 @@ import { ChannelType, Client, VoiceChannel } from 'discord.js';
 import cron from 'node-cron';
 import { readdir } from 'node:fs/promises';
 import { getConfig } from './configHandler';
-import { playAudio, subscribePlayer, unsubscribePlayer } from './play';
+import { playAudio, subscribePlayer, unsubscribePlayer } from './player';
 
-export function setupCron(client: Client<boolean>, botId: string) {
+export function setupCron(client: Client<boolean>) {
     cron.schedule('*/27 * * * *', async () => {
         for (const guild of client.guilds.cache.values()) {
             const { ALLOW_RANDOM_JOIN } = await getConfig(guild.id);
@@ -14,11 +14,12 @@ export function setupCron(client: Client<boolean>, botId: string) {
             const activeVoiceChannels = guild.channels.cache.filter((channel): channel is VoiceChannel =>
                 channel.type === ChannelType.GuildVoice &&
                 channel.members.size > 0 &&
-                channel.members.every(member => member.user.id !== botId));
+                channel.members.every(member => !member.user.bot));
             if (activeVoiceChannels.size === 0) continue;
 
             const channel = activeVoiceChannels.random();
             if (!channel.joinable) continue;
+
             // No audio clips to play
             const files = await readdir(`recordings/${guild.id}`);
             if (files.length === 0) continue;

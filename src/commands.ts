@@ -1,8 +1,8 @@
 import { VoiceConnection, VoiceConnectionStatus, entersState, joinVoiceChannel } from '@discordjs/voice';
 import { CommandInteraction, GuildMember, VoiceBasedChannel } from 'discord.js';
 import { editConfig, getConfig } from './configHandler';
-import { playAudio, subscribePlayer, unsubscribePlayer } from './play';
-import { recordController, subscribeRecorder, unsubscribeRecorder } from './record';
+import { playAudio, subscribePlayer, unsubscribePlayer } from './player';
+import { recordController, subscribeRecorder, unsubscribeRecorder } from './recorder';
 
 const intervals = new Map<string, NodeJS.Timeout>();
 
@@ -23,6 +23,8 @@ function speakLoop(channel: VoiceBasedChannel, connection: VoiceConnection, guil
 
 async function join(interaction: CommandInteraction, connection?: VoiceConnection) {
     await interaction.deferReply();
+    // FIXME: jeigu yra vienam vc ir tuomet pakvieca tam paciam guild i kita vc,
+    // tai sitas bus undefined, o connection ne, bet try catch pagauna ir labai baisiai nebuna nieko
     let channel: VoiceBasedChannel;
     if (!connection) {
         if (interaction.member instanceof GuildMember && interaction.member.voice.channel) {
@@ -73,8 +75,6 @@ async function leave(interaction: CommandInteraction, connection?: VoiceConnecti
         await interaction.reply('I am not in a voice channel!');
     }
 }
-
-// TODO: random i chata imeta bad piggie gif
 
 async function editConfigCommand(interaction: CommandInteraction) {
     await interaction.deferReply({ ephemeral: true });

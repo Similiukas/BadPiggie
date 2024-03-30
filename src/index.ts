@@ -5,6 +5,7 @@ import { mkdir, stat } from 'node:fs/promises';
 import { commandHandler } from './commands.js';
 import { createConfig } from './configHandler.js';
 import { setupCron } from './cron.js';
+import { markNewJoin } from './recorder.js';
 
 config();
 
@@ -15,8 +16,8 @@ const TOKEN = process.env.TOKEN;
 const client = new Client({ intents: [GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.Guilds] });
 
 client.once(Events.ClientReady, readyClient => {
-    console.log(`Ready! Logged in as ${readyClient.user.tag}`);
-    setupCron(client, readyClient.user.id);
+    console.log(`Ready! Logged in as ${readyClient.user.tag} ${readyClient.user.id}`);
+    setupCron(client);
     // Ensure that the recordings directory exists for every guild because maybe bot was added while it was offline
     client.guilds.cache.forEach(guild => {
         console.log(`Guild [${guild.name}] with id ${guild.id}`);
@@ -45,6 +46,12 @@ client.on(Events.InteractionCreate, async interaction => {
         } else {
             await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
         }
+    }
+});
+
+client.on('voiceStateUpdate', (oldState, newState) => {
+    if (!oldState.channel && newState.channel && !newState.member.user.bot) {
+        markNewJoin(newState.channelId, newState.member.id);
     }
 });
 
